@@ -1,4 +1,4 @@
-name: dotnet-docker-heroku CD
+name: go-docker-heroku CD
 
 on:
   push:
