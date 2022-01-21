@@ -21,9 +21,20 @@ func main() {
 	sm.Handle("/api/records", recordsHandler)
 	sm.Handle("/api/in-memory", inMemoryHandler)
 
+	serverPortEnv := os.Getenv("PORT")
+	var serverPort string
+
+	if serverPortEnv != "" {
+		l.Printf("PORT found in ENV " + serverPortEnv)
+		serverPort = serverPortEnv
+	} else {
+		l.Printf("PORT not found in ENV, gonna use default 8080")
+		serverPort = "8080"
+	}
+
 	// create a new server
 	s := http.Server{
-		Addr:         ":8080",
+		Addr:         ":" + serverPort,
 		Handler:      sm,
 		ErrorLog:     l,
 		ReadTimeout:  5 * time.Second,
@@ -32,7 +43,7 @@ func main() {
 	}
 
 	go func() {
-		l.Println("Starting server on port 9090")
+		l.Println("Starting server on port " + serverPort)
 
 		err := s.ListenAndServe()
 		if err != nil {

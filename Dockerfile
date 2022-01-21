@@ -22,12 +22,16 @@ RUN go build -o ./out/awsomeproject .
 
 # Start fresh from a smaller image
 FROM alpine:3.9 
+ARG PORT=8080
+
 RUN apk add ca-certificates
 
 COPY --from=build_base /tmp/awsomeproject/out/awsomeproject /app/awsomeproject
 
 # This container exposes port 8080 to the outside world
-EXPOSE 8080
+RUN echo $PORT
+EXPOSE $PORT
+ENV PORT=$PORT
 
 # Run the binary program produced by `go install`
 CMD ["/app/awsomeproject"]
