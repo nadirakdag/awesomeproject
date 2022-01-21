@@ -20,7 +20,7 @@ func main() {
 	l := log.New(os.Stdout, "awsome-project ", log.LstdFlags)
 	ctx, _ := context.WithTimeout(context.Background(), 30*time.Second)
 
-	const uri = "mongodb+srv://challengeUser:WUMglwNBaydH8Yvu@challenge-xzwqd.mongodb.net/getir- case-study?retryWrites=true"
+	const uri = "mongodb+srv://challengeUser:WUMglwNBaydH8Yvu@challenge-xzwqd.mongodb.net/getir-case-study?retryWrites=true"
 
 	client, err := mongo.Connect(ctx, options.Client().ApplyURI(uri))
 
