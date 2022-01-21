@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"awesomeProject/data"
-	"encoding/json"
+	"awesomeProject/models"
 	"log"
 	"net/http"
 )
@@ -41,36 +41,27 @@ func (inMemory *InMemory) ServeHTTP(writer http.ResponseWriter, request *http.Re
 func (inMemory *InMemory) getActiveTabs(writer http.ResponseWriter, request *http.Request) {
 
 	result := inMemory.activeTabsRepository.GetAll()
-
-	jE := json.NewEncoder(writer)
-	jE.Encode(result)
+	models.ActiveTabs(result).ToJSON(writer)
 }
 
 func (inMemory *InMemory) getActiveTab(key string, writer http.ResponseWriter, request *http.Request) {
 
 	activeTabResult := inMemory.activeTabsRepository.Get(key)
-
-	jE := json.NewEncoder(writer)
-	jE.Encode(activeTabResult)
+	activeTabResult.ToJSON(writer)
 }
 
 func (inMemory *InMemory) addActiveTab(writer http.ResponseWriter, request *http.Request) {
 
-	newActiveTab := &data.ActiveTab{}
+	newActiveTab := &models.ActiveTab{}
 
-	jD := json.NewDecoder(request.Body)
-	err := jD.Decode(newActiveTab)
-
-	if err != nil {
+	if err := newActiveTab.FromJSON(request.Body); err != nil {
 		http.Error(writer, "Payload format not valid", http.StatusBadRequest)
 		return
 	}
 
-	err = inMemory.activeTabsRepository.Add(*newActiveTab)
-	if err != nil {
+	if err := inMemory.activeTabsRepository.Add(*newActiveTab); err != nil {
 		http.Error(writer, err.Error(), http.StatusBadRequest)
 	}
 
-	jE := json.NewEncoder(writer)
-	jE.Encode(newActiveTab)
+	newActiveTab.ToJSON(writer)
 }

@@ -1,37 +1,33 @@
 package data
 
 import (
+	"awesomeProject/models"
 	"errors"
 )
 
-type ActiveTab struct {
-	Key   string `json:"key"`
-	Value string `json:"value"`
-}
-
 type ActiveTabsRepository interface {
-	GetAll() []ActiveTab
-	Get(key string) *ActiveTab
-	Add(item ActiveTab) error
+	GetAll() []models.ActiveTab
+	Get(key string) *models.ActiveTab
+	Add(item models.ActiveTab) error
 }
 
 var ErrActiveTabExists = errors.New("active tab key exists")
 
 type ActiveTabsInMemoryRepository struct {
-	ActiveTabs []ActiveTab
+	ActiveTabs []models.ActiveTab
 }
 
 func NewActiveTabsInMemoryRepository() ActiveTabsRepository {
 	return &ActiveTabsInMemoryRepository{
-		ActiveTabs: []ActiveTab{},
+		ActiveTabs: []models.ActiveTab{},
 	}
 }
 
-func (activeTab ActiveTabsInMemoryRepository) GetAll() []ActiveTab {
+func (activeTab ActiveTabsInMemoryRepository) GetAll() []models.ActiveTab {
 	return activeTab.ActiveTabs
 }
 
-func (activeTab ActiveTabsInMemoryRepository) Get(key string) *ActiveTab {
+func (activeTab ActiveTabsInMemoryRepository) Get(key string) *models.ActiveTab {
 
 	for _, item := range activeTab.ActiveTabs {
 		if item.Key == key {
@@ -42,7 +38,7 @@ func (activeTab ActiveTabsInMemoryRepository) Get(key string) *ActiveTab {
 	return nil
 }
 
-func (activeTab *ActiveTabsInMemoryRepository) Add(newActiveTab ActiveTab) error {
+func (activeTab *ActiveTabsInMemoryRepository) Add(newActiveTab models.ActiveTab) error {
 	for _, item := range activeTab.ActiveTabs {
 		if item.Key == newActiveTab.Key {
 			return ErrActiveTabExists
