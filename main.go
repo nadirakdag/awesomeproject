@@ -9,15 +9,42 @@ import (
 	"os"
 	"os/signal"
 	"time"
+
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/mongo/readpref"
 )
 
 func main() {
 
 	l := log.New(os.Stdout, "awsome-project ", log.LstdFlags)
+	ctx, _ := context.WithTimeout(context.Background(), 30*time.Second)
+
+	const uri = "mongodb+srv://challengeUser:WUMglwNBaydH8Yvu@challenge-xzwqd.mongodb.net/getir- case-study?retryWrites=true"
+
+	client, err := mongo.Connect(ctx, options.Client().ApplyURI(uri))
+
+	if err != nil {
+		panic(err)
+	}
+
+	defer func() {
+		if err = client.Disconnect(ctx); err != nil {
+			panic(err)
+		}
+	}()
+
+	if err := client.Ping(ctx, readpref.Primary()); err != nil {
+		panic(err)
+	}
+
+	l.Println("Successfully connected and pinged to MongoDb")
+	recordCollection := client.Database("getir-case-study").Collection("records")
 
 	activeTabRepository := data.NewActiveTabsInMemoryRepository()
+	recordsRepository := data.NewMongoRecordRepository(recordCollection, ctx)
 
-	recordsHandler := handlers.NewRecord(l)
+	recordsHandler := handlers.NewRecord(l, recordsRepository)
 	inMemoryHandler := handlers.NewInMemory(l, activeTabRepository)
 
 	sm := http.NewServeMux()
@@ -62,6 +89,5 @@ func main() {
 	sig := <-c
 	log.Println("Got signal:", sig)
 
-	ctx, _ := context.WithTimeout(context.Background(), 30*time.Second)
 	s.Shutdown(ctx)
 }

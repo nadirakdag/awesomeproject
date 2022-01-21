@@ -1,43 +1,35 @@
 package handlers
 
 import (
+	"awesomeProject/data"
 	"encoding/json"
 	"log"
 	"net/http"
 )
 
 type Records struct {
-	l *log.Logger
+	l          *log.Logger
+	repository data.RecordRepository
 }
 
-func NewRecord(l *log.Logger) *Records {
-	return &Records{l: l}
-}
-
-type RecordFilter struct {
-	StartDate string `json:"startDate"`
-	EndDate   string `json:"endDate"`
-	MinCount  int    `json:"minCount"`
-	MaxCount  int    `json:"maxCount"`
-}
-
-type RecordDto struct {
-	Key        string `json:"key"`
-	CreatedAt  string `json:"createdAt"`
-	TotalCount int    `json:"totalCount"`
+func NewRecord(l *log.Logger, repository data.RecordRepository) *Records {
+	return &Records{
+		l:          l,
+		repository: repository,
+	}
 }
 
 type RecordResult struct {
-	Code    int         `json:"code"`
-	Message string      `json:"msg"`
-	Records []RecordDto `json:"records"`
+	Code    int           `json:"code"`
+	Message string        `json:"msg"`
+	Records []data.Record `json:"records"`
 }
 
 func (r *Records) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 
 	r.l.Println("Handle Records requested")
 
-	filter := &RecordFilter{}
+	filter := &data.RecordFilter{}
 	j := json.NewDecoder(request.Body)
 	err := j.Decode(filter)
 
@@ -46,21 +38,12 @@ func (r *Records) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
+	records := r.repository.Get(filter)
+
 	result := &RecordResult{
-		Code:    1,
+		Code:    0,
 		Message: "Success",
-		Records: []RecordDto{
-			{
-				Key:        "TAKwGc6Jr4i8Z487",
-				CreatedAt:  "2017-01-28T01:22:14.398Z",
-				TotalCount: 2800,
-			},
-			{
-				Key:        "NAeQ8eX7e5TEg7oH",
-				CreatedAt:  "2017-01-27T08:19:14.135Z",
-				TotalCount: 2900,
-			},
-		},
+		Records: records,
 	}
 
 	jE := json.NewEncoder(writer)
