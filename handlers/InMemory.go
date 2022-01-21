@@ -46,8 +46,22 @@ func (inMemory *InMemory) getActiveTabs(writer http.ResponseWriter, request *htt
 
 func (inMemory *InMemory) getActiveTab(key string, writer http.ResponseWriter, request *http.Request) {
 
-	activeTabResult := inMemory.activeTabsRepository.Get(key)
-	activeTabResult.ToJSON(writer)
+	activeTabResult, err := inMemory.activeTabsRepository.Get(key)
+	if err != nil {
+		if err == data.ErrActiveTabNotFound {
+			http.Error(writer, err.Error(), http.StatusNotFound)
+			return
+		} else {
+			http.Error(writer, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	}
+
+	err = activeTabResult.ToJSON(writer)
+	if err != nil {
+		http.Error(writer, err.Error(), http.StatusInternalServerError)
+		return
+	}
 }
 
 func (inMemory *InMemory) addActiveTab(writer http.ResponseWriter, request *http.Request) {
@@ -63,5 +77,9 @@ func (inMemory *InMemory) addActiveTab(writer http.ResponseWriter, request *http
 		http.Error(writer, err.Error(), http.StatusBadRequest)
 	}
 
-	newActiveTab.ToJSON(writer)
+	err := newActiveTab.ToJSON(writer)
+	if err != nil {
+		http.Error(writer, err.Error(), http.StatusInternalServerError)
+		return
+	}
 }

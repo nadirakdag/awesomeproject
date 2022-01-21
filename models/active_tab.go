@@ -11,18 +11,15 @@ type ActiveTab struct {
 }
 
 func (activeTab *ActiveTab) FromJSON(r io.Reader) error {
-	d := json.NewDecoder(r)
-	return d.Decode(activeTab)
+	return json.NewDecoder(r).Decode(activeTab)
 }
 
 func (activeTab *ActiveTab) ToJSON(w io.Writer) error {
-	e := json.NewEncoder(w)
-	return e.Encode(activeTab)
+	return json.NewEncoder(w).Encode(activeTab)
 }
 
 type ActiveTabs []ActiveTab
 
 func (activeTabs ActiveTabs) ToJSON(w io.Writer) error {
-	e := json.NewEncoder(w)
-	return e.Encode(activeTabs)
+	return json.NewEncoder(w).Encode(activeTabs)
 }
