@@ -1,23 +1,19 @@
 package handlers
 
 import (
+	"awesomeProject/data"
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 )
 
 type InMemory struct {
-	l *log.Logger
+	l                    *log.Logger
+	activeTabsRepository data.ActiveTabsRepository
 }
 
-type ActiveTabs struct {
-	Key   string `json:"key"`
-	Value string `json:"value"`
-}
-
-func NewInMemory(l *log.Logger) *InMemory {
-	return &InMemory{l: l}
+func NewInMemory(l *log.Logger, activeTabsRepository data.ActiveTabsRepository) *InMemory {
+	return &InMemory{l: l, activeTabsRepository: activeTabsRepository}
 }
 
 func (inMemory *InMemory) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
@@ -44,29 +40,15 @@ func (inMemory *InMemory) ServeHTTP(writer http.ResponseWriter, request *http.Re
 
 func (inMemory *InMemory) getActiveTabs(writer http.ResponseWriter, request *http.Request) {
 
-	result := []*ActiveTabs{
-		{Key: "active-tabs", Value: "Getir"},
-		{Key: "info", Value: "Nadir Akdağ"},
-	}
+	result := inMemory.activeTabsRepository.GetAll()
 
 	jE := json.NewEncoder(writer)
 	jE.Encode(result)
 }
 
 func (inMemory *InMemory) getActiveTab(key string, writer http.ResponseWriter, request *http.Request) {
-	result := []*ActiveTabs{
-		{Key: "active-tabs", Value: "Getir"},
-		{Key: "info", Value: "Nadir Akdağ"},
-	}
 
-	activeTabResult := &ActiveTabs{}
-
-	for _, activeTab := range result {
-		if activeTab.Key == key {
-			activeTabResult = activeTab
-			break
-		}
-	}
+	activeTabResult := inMemory.activeTabsRepository.Get(key)
 
 	jE := json.NewEncoder(writer)
 	jE.Encode(activeTabResult)
@@ -74,7 +56,7 @@ func (inMemory *InMemory) getActiveTab(key string, writer http.ResponseWriter, r
 
 func (inMemory *InMemory) addActiveTab(writer http.ResponseWriter, request *http.Request) {
 
-	newActiveTab := &ActiveTabs{}
+	newActiveTab := &data.ActiveTab{}
 
 	jD := json.NewDecoder(request.Body)
 	err := jD.Decode(newActiveTab)
@@ -84,5 +66,11 @@ func (inMemory *InMemory) addActiveTab(writer http.ResponseWriter, request *http
 		return
 	}
 
-	fmt.Fprintf(writer, "%v", newActiveTab)
+	err = inMemory.activeTabsRepository.Add(*newActiveTab)
+	if err != nil {
+		http.Error(writer, err.Error(), http.StatusBadRequest)
+	}
+
+	jE := json.NewEncoder(writer)
+	jE.Encode(newActiveTab)
 }

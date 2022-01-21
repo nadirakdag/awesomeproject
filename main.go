@@ -1,6 +1,7 @@
 package main
 
 import (
+	"awesomeProject/data"
 	"awesomeProject/handlers"
 	"context"
 	"log"
@@ -14,8 +15,10 @@ func main() {
 
 	l := log.New(os.Stdout, "awsome-project ", log.LstdFlags)
 
+	activeTabRepository := data.NewActiveTabsInMemoryRepository()
+
 	recordsHandler := handlers.NewRecord(l)
-	inMemoryHandler := handlers.NewInMemory(l)
+	inMemoryHandler := handlers.NewInMemory(l, activeTabRepository)
 
 	sm := http.NewServeMux()
 	sm.Handle("/api/records", recordsHandler)
