@@ -29,14 +29,16 @@ func NewMongoRecordRepository(collection *mongo.Collection, context context.Cont
 var ErrStartDateFormatInvalid = errors.New("start date format is invalid, is should be YYYY-MM-DD")
 var ErrEndDateFormatInvalid = errors.New("end date format is invalid, is should be YYYY-MM-DD")
 
+const dateFormat string = "2006-01-02"
+
 func (mongoRepository *MongoRecordRepository) Get(filter *models.RecordFilter) ([]models.Record, error) {
 
-	startDate, err := time.Parse("2006-01-02", filter.StartDate)
+	startDate, err := time.Parse(dateFormat, filter.StartDate)
 	if err != nil {
 		return nil, ErrStartDateFormatInvalid
 	}
 
-	endDate, err := time.Parse("2006-01-02", filter.EndDate)
+	endDate, err := time.Parse(dateFormat, filter.EndDate)
 	if err != nil {
 		return nil, ErrEndDateFormatInvalid
 	}

@@ -30,6 +30,11 @@ type RecordResult struct {
 
 func (r *Records) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 
+	if request.Method != http.MethodPost {
+		writer.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
+
 	r.l.Println("Handle Records requested")
 
 	filter := &models.RecordFilter{}
