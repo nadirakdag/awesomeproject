@@ -1,6 +1,7 @@
 package data
 
 import (
+	"awesomeProject/models"
 	"context"
 	"errors"
 	"time"
@@ -9,21 +10,8 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-type Record struct {
-	Key        string    `json:"key" bson:"key"`
-	CreatedAt  time.Time `json:"createdAt" bson:"createdAt"`
-	TotalCount int       `json:"totalCount" bson:"totalCount"`
-}
-
-type RecordFilter struct {
-	StartDate string `json:"startDate" validate:"required"`
-	EndDate   string `json:"endDate" validate:"required"`
-	MinCount  int    `json:"minCount" validate:"required,numeric"`
-	MaxCount  int    `json:"maxCount" validate:"required,numeric"`
-}
-
 type RecordRepository interface {
-	Get(filter *RecordFilter) ([]Record, error)
+	Get(filter *models.RecordFilter) ([]models.Record, error)
 }
 
 type MongoRecordRepository struct {
@@ -41,7 +29,7 @@ func NewMongoRecordRepository(collection *mongo.Collection, context context.Cont
 var ErrStartDateFormatInvalid = errors.New("start date format is invalid, is should be YYYY-MM-DD")
 var ErrEndDateFormatInvalid = errors.New("end date format is invalid, is should be YYYY-MM-DD")
 
-func (mongoRepository *MongoRecordRepository) Get(filter *RecordFilter) ([]Record, error) {
+func (mongoRepository *MongoRecordRepository) Get(filter *models.RecordFilter) ([]models.Record, error) {
 
 	startDate, err := time.Parse("2006-01-02", filter.StartDate)
 	if err != nil {
@@ -66,7 +54,7 @@ func (mongoRepository *MongoRecordRepository) Get(filter *RecordFilter) ([]Recor
 		return nil, err
 	}
 
-	var result []Record
+	var result []models.Record
 	if err := cursor.All(mongoRepository.context, &result); err != nil {
 		return nil, err
 	}

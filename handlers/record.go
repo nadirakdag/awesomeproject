@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"awesomeProject/data"
+	"awesomeProject/models"
 	"encoding/json"
 	"log"
 	"net/http"
@@ -22,16 +23,16 @@ func NewRecord(l *log.Logger, repository data.RecordRepository) *Records {
 }
 
 type RecordResult struct {
-	Code    int           `json:"code"`
-	Message string        `json:"msg"`
-	Records []data.Record `json:"records"`
+	Code    int             `json:"code"`
+	Message string          `json:"msg"`
+	Records []models.Record `json:"records"`
 }
 
 func (r *Records) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 
 	r.l.Println("Handle Records requested")
 
-	filter := &data.RecordFilter{}
+	filter := &models.RecordFilter{}
 	j := json.NewDecoder(request.Body)
 	if err := j.Decode(filter); err != nil {
 		r.l.Printf("Error while decode filter json %v \n", err)
