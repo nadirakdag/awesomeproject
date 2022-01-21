@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+
+	"github.com/go-playground/validator"
 )
 
 type Records struct {
@@ -31,14 +33,34 @@ func (r *Records) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 
 	filter := &data.RecordFilter{}
 	j := json.NewDecoder(request.Body)
-	err := j.Decode(filter)
-
-	if err != nil {
-		http.Error(writer, "Payload format not valid", http.StatusBadRequest)
+	if err := j.Decode(filter); err != nil {
+		r.l.Printf("Error while decode filter json %v \n", err)
+		result := errorResult(-1, err.Error())
+		jsonError(writer, result, 500)
 		return
 	}
 
-	records := r.repository.Get(filter)
+	if err := validator.New().Struct(filter); err != nil {
+		validationErrors := err.(validator.ValidationErrors)
+		r.l.Printf("json validation error %v \n", err)
+		http.Error(writer, validationErrors.Error(), http.StatusBadRequest)
+		return
+	}
+
+	records, err := r.repository.Get(filter)
+	if err != nil {
+		r.l.Printf("Error whilte getting records, %v \n", err)
+
+		if err == data.ErrEndDateFormatInvalid || err == data.ErrStartDateFormatInvalid {
+			result := errorResult(-1, err.Error())
+			jsonError(writer, result, 400)
+			return
+		} else {
+			result := errorResult(-2, err.Error())
+			jsonError(writer, result, 500)
+			return
+		}
+	}
 
 	result := &RecordResult{
 		Code:    0,
@@ -46,6 +68,20 @@ func (r *Records) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 		Records: records,
 	}
 
-	jE := json.NewEncoder(writer)
-	jE.Encode(result)
+	json.NewEncoder(writer).Encode(result)
+}
+
+func jsonError(writer http.ResponseWriter, content interface{}, code int) {
+	writer.Header().Set("Content-Type", "application/json; charset=utf-8")
+	writer.Header().Set("X-Content-Type-Options", "nosniff")
+	writer.WriteHeader(code)
+	json.NewEncoder(writer).Encode(content)
+}
+
+func errorResult(code int, msg string) *RecordResult {
+	return &RecordResult{
+		Code:    code,
+		Message: msg,
+		Records: nil,
+	}
 }

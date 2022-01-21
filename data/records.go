@@ -2,7 +2,7 @@ package data
 
 import (
 	"context"
-	"log"
+	"errors"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -16,14 +16,14 @@ type Record struct {
 }
 
 type RecordFilter struct {
-	StartDate string `json:"startDate"`
-	EndDate   string `json:"endDate"`
-	MinCount  int    `json:"minCount"`
-	MaxCount  int    `json:"maxCount"`
+	StartDate string `json:"startDate" validate:"required"`
+	EndDate   string `json:"endDate" validate:"required"`
+	MinCount  int    `json:"minCount" validate:"required,numeric"`
+	MaxCount  int    `json:"maxCount" validate:"required,numeric"`
 }
 
 type RecordRepository interface {
-	Get(filter *RecordFilter) []Record
+	Get(filter *RecordFilter) ([]Record, error)
 }
 
 type MongoRecordRepository struct {
@@ -38,18 +38,19 @@ func NewMongoRecordRepository(collection *mongo.Collection, context context.Cont
 	}
 }
 
-func (mongoRepository *MongoRecordRepository) Get(filter *RecordFilter) []Record {
+var ErrStartDateFormatInvalid = errors.New("start date format is invalid, is should be YYYY-MM-DD")
+var ErrEndDateFormatInvalid = errors.New("end date format is invalid, is should be YYYY-MM-DD")
+
+func (mongoRepository *MongoRecordRepository) Get(filter *RecordFilter) ([]Record, error) {
 
 	startDate, err := time.Parse("2006-01-02", filter.StartDate)
 	if err != nil {
-		log.Panicln("start date parse failed", filter.StartDate)
-		return nil
+		return nil, ErrStartDateFormatInvalid
 	}
 
 	endDate, err := time.Parse("2006-01-02", filter.EndDate)
 	if err != nil {
-		log.Panicln("end date parse failed")
-		return nil
+		return nil, ErrEndDateFormatInvalid
 	}
 
 	pipe := []bson.M{
@@ -62,13 +63,13 @@ func (mongoRepository *MongoRecordRepository) Get(filter *RecordFilter) []Record
 
 	cursor, err := mongoRepository.collection.Aggregate(mongoRepository.context, pipe)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	var result []Record
 	if err := cursor.All(mongoRepository.context, &result); err != nil {
-		log.Fatalln(err)
+		return nil, err
 	}
 
-	return result
+	return result, nil
 }
