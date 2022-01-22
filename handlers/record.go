@@ -55,8 +55,8 @@ func (r *Records) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 	r.l.Println("Handle Records requested")
 
 	filter := &models.RecordFilter{}
-	j := json.NewDecoder(request.Body)
-	if err := j.Decode(filter); err != nil {
+
+	if err := json.NewDecoder(request.Body).Decode(filter); err != nil {
 		r.l.Printf("Error while decode filter json %v \n", err)
 		result := errorResult(-1, err.Error())
 		jsonError(writer, result, 500)
@@ -66,7 +66,7 @@ func (r *Records) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 	if err := validator.New().Struct(filter); err != nil {
 		validationErrors := err.(validator.ValidationErrors)
 		r.l.Printf("json validation error %v \n", err)
-		http.Error(writer, validationErrors.Error(), http.StatusBadRequest)
+		jsonError(writer, validationErrors.Error(), 400)
 		return
 	}
 
