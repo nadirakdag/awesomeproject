@@ -2,10 +2,13 @@ package handlers
 
 import (
 	"awesomeProject/data"
+	"awesomeProject/helpers"
 	"awesomeProject/models"
 	"encoding/json"
+	"errors"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/go-playground/validator"
 )
@@ -30,6 +33,9 @@ type RecordResult struct {
 	Message string          `json:"msg"`
 	Records []models.Record `json:"records"`
 }
+
+var ErrStartDateFormatInvalid = errors.New("start date format is invalid, is should be YYYY-MM-DD")
+var ErrEndDateFormatInvalid = errors.New("end date format is invalid, is should be YYYY-MM-DD")
 
 // @Summary ServeHTTP is the main entry point for the handler and staisfies the http.Handler
 // @Summary Returns filtered records
@@ -64,19 +70,24 @@ func (r *Records) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
+	if _, err := time.Parse(helpers.DateFormat, filter.StartDate); err != nil {
+		result := errorResult(-1, err.Error())
+		jsonError(writer, result, 400)
+		return
+	}
+
+	if _, err := time.Parse(helpers.DateFormat, filter.EndDate); err != nil {
+		result := errorResult(-1, err.Error())
+		jsonError(writer, result, 400)
+		return
+	}
+
 	records, err := r.repository.Get(filter)
 	if err != nil {
 		r.l.Printf("Error whilte getting records, %v \n", err)
-
-		if err == data.ErrEndDateFormatInvalid || err == data.ErrStartDateFormatInvalid {
-			result := errorResult(-1, err.Error())
-			jsonError(writer, result, 400)
-			return
-		} else {
-			result := errorResult(-2, err.Error())
-			jsonError(writer, result, 500)
-			return
-		}
+		result := errorResult(-2, err.Error())
+		jsonError(writer, result, 500)
+		return
 	}
 
 	result := &RecordResult{
