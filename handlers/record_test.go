@@ -26,6 +26,22 @@ func TestServeHTTP(t *testing.T) {
 		l: l,
 	}
 
+	t.Run("returns method not allowed when send other then POST", func(t *testing.T) {
+		rr := httptest.NewRecorder()
+		handler := http.HandlerFunc(record.ServeHTTP)
+		req, err := http.NewRequest("PUT", path, nil)
+
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		handler.ServeHTTP(rr, req)
+
+		if status := rr.Code; status != http.StatusMethodNotAllowed {
+			t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusMethodNotAllowed)
+		}
+	})
+
 	t.Run("return internal server error when it can not parse body", func(t *testing.T) {
 		rr := httptest.NewRecorder()
 		handler := http.HandlerFunc(record.ServeHTTP)
@@ -42,7 +58,6 @@ func TestServeHTTP(t *testing.T) {
 			t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusInternalServerError)
 		}
 
-		t.Logf("%s", rr.Body.String())
 		checkResponseCode(rr, t, -1)
 	})
 
@@ -69,7 +84,6 @@ func TestServeHTTP(t *testing.T) {
 			t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusBadRequest)
 		}
 
-		t.Logf("%s", rr.Body.String())
 		checkResponseCode(rr, t, -1)
 	})
 
@@ -96,7 +110,6 @@ func TestServeHTTP(t *testing.T) {
 			t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusBadRequest)
 		}
 
-		t.Logf("%s", rr.Body.String())
 		checkResponseCode(rr, t, -1)
 	})
 
@@ -126,7 +139,6 @@ func TestServeHTTP(t *testing.T) {
 			t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusOK)
 		}
 
-		t.Logf("%s", rr.Body.String())
 		checkResponseCode(rr, t, 0)
 	})
 
@@ -156,7 +168,6 @@ func TestServeHTTP(t *testing.T) {
 			t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusInternalServerError)
 		}
 
-		t.Logf("%s", rr.Body.String())
 		checkResponseCode(rr, t, -2)
 	})
 }
