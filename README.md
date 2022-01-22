@@ -1,6 +1,12 @@
 
 # Awesome Project
 
+This project has two end points in-memory and records. It has api prefix in the url and  handler integration tests. Also supports docker. Also this repo has github action every commit sended to master automatically deploy to heroku.
+
+## Heroku address
+
+[https://awesomeproject-nadir.herokuapp.com](https://awesomeproject-nadir.herokuapp.com)
+
 ## Run Locally
 
 Clone the project
@@ -26,13 +32,40 @@ Start the server
 ```bash
   go run main.go
 ```
+
+## Run With Docker
+
+Clone the project
+
+```bash
+  git clone https://github.com/nadirakdag/awesomeproject
+```
+
+Go to the project directory
+
+```bash
+  cd awesomeproject
+```
+
+Build docker image
+
+```bash
+  docker build . -t awesomeproject:latest --build-arg PORT=9090
+```
+
+Run docker image 
+
+```bash
+ docker run -d -p 9090:9090 awesomeproject:latest
+```
+
   
 ## Running Tests
 
 To run tests, run the following command
 
 ```bash
-  go test
+  go test ./...
 ```
 
 ## ENV Variables
@@ -71,6 +104,13 @@ Example
 }
 ````
 
+Example curl request
+
+````bash
+curl -v -d '{"startDate": "2016-04-01", "endDate":"2016-04-20", "minCount":5000, "maxCount": 6000}' -X POST  https://awesomeproject-nadir.herokuapp.com/api/records
+````
+
+
 #### Get In-Memory
 
 ```http
@@ -78,6 +118,12 @@ Example
 ```
 
 Returns all of data key values
+
+Example curl request
+
+````bash
+curl -v -X GET http://awesomeproject-nadir.herokuapp.com/api/in-memory
+````
 
 #### Get In-Memory by Key
 
@@ -89,8 +135,14 @@ Returns all of data key values
 | :-------- | :------- | :-------------------------------- |
 | `key`      | `string` | **Required**. key of item to fetch |
 
+Example curl request
 
-#### Create Bill
+````bash
+curl -v -X GET http://awesomeproject-nadir.herokuapp.com/api/in-memory?key=test
+````
+
+
+#### Create in-memory key value pair
 
 ```http
   POST /api/in-memory
@@ -98,10 +150,10 @@ Returns all of data key values
 
 | Body | Type     | Description                       | Location |
 | :-------- | :------- | :-------------------------------- | :------ |
-| `InMemory Object` | `Json` | **Required**. Key Valur information to create | Body |
+| `KeyValuePair Object` | `Json` | **Required**. Key Valur information to create | Body |
 
 
-##### InMemory Object
+KeyValuePair Object
 | Body | Type     | Description                       |
 | :-------- | :------- | :-------------------------------- |
 | `key` | `string` | **Required**. Key |
@@ -113,4 +165,9 @@ Example
     "key": "info",
     "value": "nadirakdag"
 }
+````
+Example curl request
+
+````bash
+curl -v -X POST -d '{"key":"test", "value":"test-value"}' http://awesomeproject-nadir.herokuapp.com/api/in-memory
 ````
