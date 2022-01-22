@@ -70,8 +70,7 @@ func (inMemory *InMemory) getActiveTab(key string, writer http.ResponseWriter, r
 		}
 	}
 
-	err = activeTabResult.ToJSON(writer)
-	if err != nil {
+	if err := activeTabResult.ToJSON(writer); err != nil {
 		http.Error(writer, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -96,8 +95,7 @@ func (inMemory *InMemory) addActiveTab(writer http.ResponseWriter, request *http
 		http.Error(writer, err.Error(), http.StatusBadRequest)
 	}
 
-	err := newActiveTab.ToJSON(writer)
-	if err != nil {
+	if err := newActiveTab.ToJSON(writer); err != nil {
 		http.Error(writer, err.Error(), http.StatusInternalServerError)
 		return
 	}
