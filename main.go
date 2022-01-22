@@ -21,10 +21,10 @@ func main() {
 	l := log.New(os.Stdout, "awsome-project ", log.LstdFlags)
 	ctx, _ := context.WithTimeout(context.Background(), 30*time.Second)
 
-	activeTabRepository, recordsRepository := initRepositories(ctx, l)
+	keyValuePairsRepository, recordsRepository := initRepositories(ctx, l)
 
 	recordsHandler := handlers.NewRecord(l, recordsRepository)
-	inMemoryHandler := handlers.NewInMemory(l, activeTabRepository)
+	inMemoryHandler := handlers.NewInMemory(l, keyValuePairsRepository)
 
 	serverPort := getServerPort(l)
 	server := createdAndStartHttpServer(l, recordsHandler, inMemoryHandler, serverPort)
@@ -83,8 +83,8 @@ func getServerPort(l *log.Logger) string {
 	return serverPort
 }
 
-// inits and returns ActiveTabsRepository and RecordRepository
-func initRepositories(ctx context.Context, l *log.Logger) (data.ActiveTabsRepository, data.RecordRepository) {
+// inits and returns KeyValuePairRepository and RecordRepository
+func initRepositories(ctx context.Context, l *log.Logger) (data.KeyValueRepository, data.RecordRepository) {
 	const uri = "mongodb+srv://challengeUser:WUMglwNBaydH8Yvu@challenge-xzwqd.mongodb.net/getir-case-study?retryWrites=true"
 
 	client, err := mongo.Connect(ctx, options.Client().ApplyURI(uri))
@@ -106,8 +106,8 @@ func initRepositories(ctx context.Context, l *log.Logger) (data.ActiveTabsReposi
 	l.Println("Successfully connected and pinged to MongoDb")
 	recordCollection := client.Database("getir-case-study").Collection("records")
 
-	activeTabRepository := data.NewActiveTabsInMemoryRepository()
+	keyValuePairRepository := data.NewKeyValueInMemoryRepository()
 	recordsRepository := data.NewMongoRecordRepository(recordCollection)
 
-	return activeTabRepository, recordsRepository
+	return keyValuePairRepository, recordsRepository
 }
