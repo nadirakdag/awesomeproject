@@ -21,7 +21,7 @@ func main() {
 	l := log.New(os.Stdout, "awsome-project ", log.LstdFlags)
 	ctx, _ := context.WithTimeout(context.Background(), 30*time.Second)
 
-	keyValuePairsRepository, recordsRepository := initRepositories(ctx, l)
+	keyValuePairsRepository, recordsRepository := initRepositories(l)
 
 	recordsHandler := handlers.NewRecord(l, recordsRepository)
 	inMemoryHandler := handlers.NewInMemory(l, keyValuePairsRepository)
@@ -84,22 +84,22 @@ func getServerPort(l *log.Logger) string {
 }
 
 // inits and returns KeyValuePairRepository and RecordRepository
-func initRepositories(ctx context.Context, l *log.Logger) (data.KeyValueRepository, data.RecordRepository) {
+func initRepositories(l *log.Logger) (data.KeyValueRepository, data.RecordRepository) {
 	const uri = "mongodb+srv://challengeUser:WUMglwNBaydH8Yvu@challenge-xzwqd.mongodb.net/getir-case-study?retryWrites=true"
 
-	client, err := mongo.Connect(ctx, options.Client().ApplyURI(uri))
+	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(uri))
 
 	if err != nil {
 		panic(err)
 	}
 
 	defer func() {
-		if err = client.Disconnect(ctx); err != nil {
+		if err = client.Disconnect(context.TODO()); err != nil {
 			panic(err)
 		}
 	}()
 
-	if err := client.Ping(ctx, readpref.Primary()); err != nil {
+	if err := client.Ping(context.TODO(), readpref.Primary()); err != nil {
 		panic(err)
 	}
 
