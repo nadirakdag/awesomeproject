@@ -1,5 +1,7 @@
 package models
 
+// this model used for filtering records
+// also used for records POST request model
 type RecordFilter struct {
 	StartDate string `json:"startDate" validate:"required"`
 	EndDate   string `json:"endDate" validate:"required"`
