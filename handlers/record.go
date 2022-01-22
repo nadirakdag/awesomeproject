@@ -66,7 +66,8 @@ func (r *Records) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 	if err := validator.New().Struct(filter); err != nil {
 		validationErrors := err.(validator.ValidationErrors)
 		r.l.Printf("json validation error %v \n", err)
-		jsonError(writer, validationErrors.Error(), 400)
+		result := errorResult(-1, validationErrors.Error())
+		jsonError(writer, result, 400)
 		return
 	}
 
@@ -100,7 +101,7 @@ func (r *Records) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 }
 
 // returns http error with givven http status code and object
-func jsonError(writer http.ResponseWriter, content interface{}, code int) {
+func jsonError(writer http.ResponseWriter, content *RecordResult, code int) {
 	writer.Header().Set("Content-Type", "application/json; charset=utf-8")
 	writer.Header().Set("X-Content-Type-Options", "nosniff")
 	writer.WriteHeader(code)
