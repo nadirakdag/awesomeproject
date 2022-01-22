@@ -13,7 +13,7 @@ type InMemory struct {
 	activeTabsRepository data.ActiveTabsRepository
 }
 
-// Creates a new InMemory handler given logger and active tab repository
+// Creates a new InMemory handler with given logger and active tab repository
 func NewInMemory(l *log.Logger, activeTabsRepository data.ActiveTabsRepository) *InMemory {
 	return &InMemory{l: l, activeTabsRepository: activeTabsRepository}
 }

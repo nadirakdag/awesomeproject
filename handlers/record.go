@@ -10,11 +10,13 @@ import (
 	"github.com/go-playground/validator"
 )
 
+// is a http handler object
 type Records struct {
 	l          *log.Logger
 	repository data.RecordRepository
 }
 
+// Creates a new Record handler with given logger and record repository
 func NewRecord(l *log.Logger, repository data.RecordRepository) *Records {
 	return &Records{
 		l:          l,
@@ -22,12 +24,21 @@ func NewRecord(l *log.Logger, repository data.RecordRepository) *Records {
 	}
 }
 
+// @Summary Record GET Response Struct
 type RecordResult struct {
 	Code    int             `json:"code"`
 	Message string          `json:"msg"`
 	Records []models.Record `json:"records"`
 }
 
+// @Summary ServeHTTP is the main entry point for the handler and staisfies the http.Handler
+// @Summary Returns filtered records
+// @Produce json
+// @Success 200 {object} RecordResult
+// @Failure 405 Method not allowed other then POST
+// @Failure 500 internal server error {object} RecordResult
+// @Failure 400 bad request {object} RecordResult
+// @Router /api/recors [post]
 func (r *Records) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 
 	if request.Method != http.MethodPost {
@@ -77,6 +88,7 @@ func (r *Records) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 	json.NewEncoder(writer).Encode(result)
 }
 
+// returns http error with givven http status code and object
 func jsonError(writer http.ResponseWriter, content interface{}, code int) {
 	writer.Header().Set("Content-Type", "application/json; charset=utf-8")
 	writer.Header().Set("X-Content-Type-Options", "nosniff")
@@ -84,6 +96,7 @@ func jsonError(writer http.ResponseWriter, content interface{}, code int) {
 	json.NewEncoder(writer).Encode(content)
 }
 
+// creates Record result for errors
 func errorResult(code int, msg string) *RecordResult {
 	return &RecordResult{
 		Code:    code,
