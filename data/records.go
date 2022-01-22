@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo/readpref"
 )
 
 // record repository interface
@@ -62,6 +63,10 @@ func (mongoRepository *MongoRecordRepository) Get(filter *models.RecordFilter) (
 
 	if err := mongoRepository.connection.Client.Connect(context.TODO()); err != nil {
 		return nil, err
+	}
+
+	if err := mongoRepository.connection.Client.Ping(context.TODO(), readpref.Primary()); err != nil {
+		panic(err)
 	}
 
 	collection := mongoRepository.connection.Client.Database(database).Collection(collection)
