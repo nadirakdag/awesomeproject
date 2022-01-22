@@ -60,16 +60,9 @@ func (mongoRepository *MongoRecordRepository) Get(filter *models.RecordFilter) (
 		}},
 	}
 
-	err = mongoRepository.connection.Client.Connect(context.TODO())
-	if err != nil {
+	if err := mongoRepository.connection.Client.Connect(context.TODO()); err != nil {
 		return nil, err
 	}
-
-	defer func() {
-		if err := mongoRepository.connection.Client.Disconnect(context.TODO()); err != nil {
-			panic(err)
-		}
-	}()
 
 	collection := mongoRepository.connection.Client.Database(database).Collection(collection)
 	cursor, err := collection.Aggregate(context.TODO(), pipe)
@@ -79,6 +72,10 @@ func (mongoRepository *MongoRecordRepository) Get(filter *models.RecordFilter) (
 
 	var result []models.Record
 	if err := cursor.All(context.TODO(), &result); err != nil {
+		return nil, err
+	}
+
+	if err := mongoRepository.connection.Client.Disconnect(context.TODO()); err != nil {
 		return nil, err
 	}
 
