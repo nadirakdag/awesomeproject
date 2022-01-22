@@ -2,7 +2,6 @@ package main
 
 import (
 	"awesomeProject/data"
-	"awesomeProject/db"
 	"awesomeProject/handlers"
 	"context"
 	"log"
@@ -10,6 +9,10 @@ import (
 	"os"
 	"os/signal"
 	"time"
+
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/mongo/readpref"
 )
 
 // applicaation start point
@@ -84,15 +87,27 @@ func getServerPort(l *log.Logger) string {
 func initRepositories(ctx context.Context, l *log.Logger) (data.KeyValueRepository, data.RecordRepository) {
 	const uri = "mongodb+srv://challengeUser:WUMglwNBaydH8Yvu@challenge-xzwqd.mongodb.net/getir-case-study?retryWrites=true"
 
-	mongoDbClient, err := db.NewMongoConnection(ctx, uri)
+	client, err := mongo.Connect(ctx, options.Client().ApplyURI(uri))
+
 	if err != nil {
 		panic(err)
 	}
 
+	defer func() {
+		if err = client.Disconnect(ctx); err != nil {
+			panic(err)
+		}
+	}()
+
+	if err := client.Ping(ctx, readpref.Primary()); err != nil {
+		panic(err)
+	}
+
 	l.Println("Successfully connected and pinged to MongoDb")
+	recordCollection := client.Database("getir-case-study").Collection("records")
 
 	keyValuePairRepository := data.NewKeyValueInMemoryRepository()
-	recordsRepository := data.NewMongoRecordRepository(mongoDbClient)
+	recordsRepository := data.NewMongoRecordRepository(recordCollection)
 
 	return keyValuePairRepository, recordsRepository
 }

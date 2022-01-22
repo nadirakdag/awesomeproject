@@ -1,14 +1,13 @@
 package data
 
 import (
-	"awesomeProject/db"
 	"awesomeProject/models"
 	"context"
 	"errors"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo/readpref"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 // record repository interface
@@ -18,24 +17,20 @@ type RecordRepository interface {
 
 // record mongodb repository
 type MongoRecordRepository struct {
-	connection *db.MongoDbConnection
+	collection *mongo.Collection
 }
 
 // creates a new mongodb repository for record
-func NewMongoRecordRepository(conection *db.MongoDbConnection) *MongoRecordRepository {
+func NewMongoRecordRepository(collection *mongo.Collection) *MongoRecordRepository {
 	return &MongoRecordRepository{
-		connection: conection,
+		collection: collection,
 	}
 }
 
 var ErrStartDateFormatInvalid = errors.New("start date format is invalid, is should be YYYY-MM-DD")
 var ErrEndDateFormatInvalid = errors.New("end date format is invalid, is should be YYYY-MM-DD")
 
-const (
-	dateFormat string = "2006-01-02"
-	database   string = "getir-case-study"
-	collection string = "records"
-)
+const dateFormat string = "2006-01-02"
 
 // implements Get method from RecordRepository for mongodb
 // returns filtered records
@@ -61,26 +56,13 @@ func (mongoRepository *MongoRecordRepository) Get(filter *models.RecordFilter) (
 		}},
 	}
 
-	if err := mongoRepository.connection.Client.Connect(context.TODO()); err != nil {
-		return nil, err
-	}
-
-	if err := mongoRepository.connection.Client.Ping(context.TODO(), readpref.Primary()); err != nil {
-		panic(err)
-	}
-
-	collection := mongoRepository.connection.Client.Database(database).Collection(collection)
-	cursor, err := collection.Aggregate(context.TODO(), pipe)
+	cursor, err := mongoRepository.collection.Aggregate(context.TODO(), pipe)
 	if err != nil {
 		return nil, err
 	}
 
 	var result []models.Record
 	if err := cursor.All(context.TODO(), &result); err != nil {
-		return nil, err
-	}
-
-	if err := mongoRepository.connection.Client.Disconnect(context.TODO()); err != nil {
 		return nil, err
 	}
 
