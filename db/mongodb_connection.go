@@ -19,6 +19,12 @@ func NewMongoConnection(ctx context.Context, uri string) (*MongoDbConnection, er
 		panic(err)
 	}
 
+	client.Connect(ctx)
+
+	defer func() {
+		client.Disconnect(ctx)
+	}()
+
 	if err := client.Ping(ctx, readpref.Primary()); err != nil {
 		panic(err)
 	}
