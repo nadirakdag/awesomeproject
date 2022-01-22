@@ -62,15 +62,18 @@ func (inMemory *InMemory) getActiveTab(key string, writer http.ResponseWriter, r
 	activeTabResult, err := inMemory.activeTabsRepository.Get(key)
 	if err != nil {
 		if err == data.ErrActiveTabNotFound {
+			inMemory.l.Printf("Active tab not found for %s %v", key, err.Error())
 			http.Error(writer, err.Error(), http.StatusNotFound)
 			return
 		} else {
+			inMemory.l.Printf("While getting active tab someting went wrong, Key: %s , Err: %v", key, err)
 			http.Error(writer, err.Error(), http.StatusInternalServerError)
 			return
 		}
 	}
 
 	if err := activeTabResult.ToJSON(writer); err != nil {
+		inMemory.l.Printf("While converting to json someting went wrong, Key: %s, Err: %v", key, err)
 		http.Error(writer, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -87,15 +90,18 @@ func (inMemory *InMemory) addActiveTab(writer http.ResponseWriter, request *http
 	newActiveTab := &models.ActiveTab{}
 
 	if err := newActiveTab.FromJSON(request.Body); err != nil {
+		inMemory.l.Printf("While converting json to struct something went wrong, Err: %v", err)
 		http.Error(writer, "Payload format not valid", http.StatusBadRequest)
 		return
 	}
 
 	if err := inMemory.activeTabsRepository.Add(*newActiveTab); err != nil {
+		inMemory.l.Printf("While adding new active tab something went wrong, Err: %v", err)
 		http.Error(writer, err.Error(), http.StatusBadRequest)
 	}
 
 	if err := newActiveTab.ToJSON(writer); err != nil {
+		inMemory.l.Printf("While converting to json someting went wrong, Err: %v", err)
 		http.Error(writer, err.Error(), http.StatusInternalServerError)
 		return
 	}
