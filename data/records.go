@@ -1,13 +1,13 @@
 package data
 
 import (
+	"awesomeProject/db"
 	"awesomeProject/models"
 	"context"
 	"errors"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
 )
 
 // record repository interface
@@ -17,20 +17,24 @@ type RecordRepository interface {
 
 // record mongodb repository
 type MongoRecordRepository struct {
-	collection *mongo.Collection
+	connection *db.MongoDbConnection
 }
 
 // creates a new mongodb repository for record
-func NewMongoRecordRepository(collection *mongo.Collection) *MongoRecordRepository {
+func NewMongoRecordRepository(conection *db.MongoDbConnection) *MongoRecordRepository {
 	return &MongoRecordRepository{
-		collection: collection,
+		connection: conection,
 	}
 }
 
 var ErrStartDateFormatInvalid = errors.New("start date format is invalid, is should be YYYY-MM-DD")
 var ErrEndDateFormatInvalid = errors.New("end date format is invalid, is should be YYYY-MM-DD")
 
-const dateFormat string = "2006-01-02"
+const (
+	dateFormat string = "2006-01-02"
+	database   string = "getir-case-study"
+	collection string = "records"
+)
 
 // implements Get method from RecordRepository for mongodb
 // returns filtered records
@@ -56,7 +60,19 @@ func (mongoRepository *MongoRecordRepository) Get(filter *models.RecordFilter) (
 		}},
 	}
 
-	cursor, err := mongoRepository.collection.Aggregate(context.TODO(), pipe)
+	err = mongoRepository.connection.Client.Connect(context.TODO())
+	if err != nil {
+		return nil, err
+	}
+
+	defer func() {
+		if err := mongoRepository.connection.Client.Disconnect(context.TODO()); err != nil {
+			panic(err)
+		}
+	}()
+
+	collection := mongoRepository.connection.Client.Database(database).Collection(collection)
+	cursor, err := collection.Aggregate(context.TODO(), pipe)
 	if err != nil {
 		return nil, err
 	}
