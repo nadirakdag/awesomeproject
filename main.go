@@ -2,6 +2,7 @@ package main
 
 import (
 	"awesomeProject/data"
+	"awesomeProject/db"
 	"awesomeProject/handlers"
 	"context"
 	"log"
@@ -9,10 +10,6 @@ import (
 	"os"
 	"os/signal"
 	"time"
-
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
-	"go.mongodb.org/mongo-driver/mongo/readpref"
 )
 
 // applicaation start point
@@ -21,7 +18,17 @@ func main() {
 	l := log.New(os.Stdout, "awsome-project ", log.LstdFlags)
 	ctx, _ := context.WithTimeout(context.Background(), 30*time.Second)
 
-	keyValuePairsRepository, recordsRepository := initRepositories(l)
+	const uri = "mongodb+srv://challengeUser:WUMglwNBaydH8Yvu@challenge-xzwqd.mongodb.net/getir-case-study?retryWrites=true"
+	dbConnection, err := db.NewMongoConnection(uri, "getir-case-study")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer func() {
+		_ = dbConnection.Db.Client().Disconnect(context.Background())
+	}()
+
+	keyValuePairsRepository, recordsRepository := initRepositories(l, dbConnection)
 
 	recordsHandler := handlers.NewRecord(l, recordsRepository)
 	inMemoryHandler := handlers.NewInMemory(l, keyValuePairsRepository)
@@ -84,27 +91,9 @@ func getServerPort(l *log.Logger) string {
 }
 
 // inits and returns KeyValuePairRepository and RecordRepository
-func initRepositories(l *log.Logger) (data.KeyValueRepository, data.RecordRepository) {
-	const uri = "mongodb+srv://challengeUser:WUMglwNBaydH8Yvu@challenge-xzwqd.mongodb.net/getir-case-study?retryWrites=true"
+func initRepositories(l *log.Logger, db *db.MongoConnection) (data.KeyValueRepository, data.RecordRepository) {
 
-	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(uri))
-
-	if err != nil {
-		panic(err)
-	}
-
-	defer func() {
-		if err = client.Disconnect(context.TODO()); err != nil {
-			panic(err)
-		}
-	}()
-
-	if err := client.Ping(context.TODO(), readpref.Primary()); err != nil {
-		panic(err)
-	}
-
-	l.Println("Successfully connected and pinged to MongoDb")
-	recordCollection := client.Database("getir-case-study").Collection("records")
+	recordCollection := db.Db.Collection("records")
 
 	keyValuePairRepository := data.NewKeyValueInMemoryRepository()
 	recordsRepository := data.NewMongoRecordRepository(recordCollection)
