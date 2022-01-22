@@ -18,14 +18,12 @@ type RecordRepository interface {
 // record mongodb repository
 type MongoRecordRepository struct {
 	collection *mongo.Collection
-	context    context.Context
 }
 
 // creates a new mongodb repository for record
-func NewMongoRecordRepository(collection *mongo.Collection, context context.Context) *MongoRecordRepository {
+func NewMongoRecordRepository(collection *mongo.Collection) *MongoRecordRepository {
 	return &MongoRecordRepository{
 		collection: collection,
-		context:    context,
 	}
 }
 
@@ -58,13 +56,13 @@ func (mongoRepository *MongoRecordRepository) Get(filter *models.RecordFilter) (
 		}},
 	}
 
-	cursor, err := mongoRepository.collection.Aggregate(mongoRepository.context, pipe)
+	cursor, err := mongoRepository.collection.Aggregate(context.TODO(), pipe)
 	if err != nil {
 		return nil, err
 	}
 
 	var result []models.Record
-	if err := cursor.All(mongoRepository.context, &result); err != nil {
+	if err := cursor.All(context.TODO(), &result); err != nil {
 		return nil, err
 	}
 

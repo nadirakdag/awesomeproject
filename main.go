@@ -107,7 +107,7 @@ func initRepositories(ctx context.Context, l *log.Logger) (data.ActiveTabsReposi
 	recordCollection := client.Database("getir-case-study").Collection("records")
 
 	activeTabRepository := data.NewActiveTabsInMemoryRepository()
-	recordsRepository := data.NewMongoRecordRepository(recordCollection, ctx)
+	recordsRepository := data.NewMongoRecordRepository(recordCollection)
 
 	return activeTabRepository, recordsRepository
 }
