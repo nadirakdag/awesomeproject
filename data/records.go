@@ -10,15 +10,18 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
+// record repository interface
 type RecordRepository interface {
 	Get(filter *models.RecordFilter) ([]models.Record, error)
 }
 
+// record mongodb repository
 type MongoRecordRepository struct {
 	collection *mongo.Collection
 	context    context.Context
 }
 
+// creates a new mongodb repository for record
 func NewMongoRecordRepository(collection *mongo.Collection, context context.Context) *MongoRecordRepository {
 	return &MongoRecordRepository{
 		collection: collection,
@@ -31,6 +34,10 @@ var ErrEndDateFormatInvalid = errors.New("end date format is invalid, is should 
 
 const dateFormat string = "2006-01-02"
 
+// implements Get method from RecordRepository for mongodb
+// returns filtered records
+// if filter object start date format is invalid then returns ErrStartDateFormatInvalid
+// if filter object end date format is invalid then returns ErrEndDateFormatInvalid
 func (mongoRepository *MongoRecordRepository) Get(filter *models.RecordFilter) ([]models.Record, error) {
 
 	startDate, err := time.Parse(dateFormat, filter.StartDate)

@@ -15,7 +15,7 @@ type ActiveTabsRepository interface {
 var ErrActiveTabExists = errors.New("active tab key exists")
 var ErrActiveTabNotFound = errors.New("active tab does not exits")
 
-// active tabs in-memory database repository for active tabs
+//in-memory database repository for active tabs
 type ActiveTabsInMemoryRepository struct {
 	ActiveTabs []models.ActiveTab
 }
