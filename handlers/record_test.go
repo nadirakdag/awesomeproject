@@ -14,7 +14,7 @@ import (
 	"time"
 )
 
-func TestServeHTTP(t *testing.T) {
+func TestRecordServeHTTP(t *testing.T) {
 
 	const method string = "POST"
 	const path string = "/api/records"
