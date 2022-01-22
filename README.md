@@ -35,6 +35,11 @@ To run tests, run the following command
   go test
 ```
 
+## ENV Variables
+| Name | Default Value     | Description                       |
+| :-------- | :------- | :-------------------------------- |
+| `PORT` | `8080` | if found use the value of for server port |
+
   
 ## API Reference
 
