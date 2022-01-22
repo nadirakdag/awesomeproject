@@ -4,6 +4,7 @@ import (
 	"awesomeProject/data"
 	"awesomeProject/db"
 	"awesomeProject/handlers"
+	"awesomeProject/helpers"
 	"context"
 	"log"
 	"net/http"
@@ -19,7 +20,7 @@ func main() {
 	ctx, _ := context.WithTimeout(context.Background(), 30*time.Second)
 
 	const uri = "mongodb+srv://challengeUser:WUMglwNBaydH8Yvu@challenge-xzwqd.mongodb.net/getir-case-study?retryWrites=true"
-	dbConnection, err := db.NewMongoConnection(uri, "getir-case-study")
+	dbConnection, err := db.NewMongoConnection(uri, helpers.DatabaseName)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -93,7 +94,7 @@ func getServerPort(l *log.Logger) string {
 // inits and returns KeyValuePairRepository and RecordRepository
 func initRepositories(l *log.Logger, db *db.MongoConnection) (data.KeyValueRepository, data.RecordRepository) {
 
-	recordCollection := db.Db.Collection("records")
+	recordCollection := db.Db.Collection(helpers.CollectionName)
 
 	keyValuePairRepository := data.NewKeyValueInMemoryRepository()
 	recordsRepository := data.NewMongoRecordRepository(recordCollection)
