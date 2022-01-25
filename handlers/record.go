@@ -27,13 +27,6 @@ func NewRecord(l *log.Logger, repository data.RecordRepository) *Records {
 	}
 }
 
-// @Summary Record GET Response Struct
-type RecordResult struct {
-	Code    int             `json:"code"`
-	Message string          `json:"msg"`
-	Records []models.Record `json:"records"`
-}
-
 var ErrStartDateFormatInvalid = errors.New("start date format is invalid, is should be YYYY-MM-DD")
 var ErrEndDateFormatInvalid = errors.New("end date format is invalid, is should be YYYY-MM-DD")
 
@@ -59,7 +52,7 @@ func (r *Records) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 	if err := json.NewDecoder(request.Body).Decode(filter); err != nil {
 		r.l.Printf("Error while decode filter json %v \n", err)
 		result := errorResult(-1, err.Error())
-		jsonError(writer, result, 500)
+		returnJSONError(writer, result, 500)
 		return
 	}
 
@@ -67,19 +60,19 @@ func (r *Records) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 		validationErrors := err.(validator.ValidationErrors)
 		r.l.Printf("json validation error %v \n", err)
 		result := errorResult(-1, validationErrors.Error())
-		jsonError(writer, result, 400)
+		returnJSONError(writer, result, 400)
 		return
 	}
 
 	if _, err := time.Parse(helpers.DateFormat, filter.StartDate); err != nil {
 		result := errorResult(-1, err.Error())
-		jsonError(writer, result, 400)
+		returnJSONError(writer, result, 400)
 		return
 	}
 
 	if _, err := time.Parse(helpers.DateFormat, filter.EndDate); err != nil {
 		result := errorResult(-1, err.Error())
-		jsonError(writer, result, 400)
+		returnJSONError(writer, result, 400)
 		return
 	}
 
@@ -87,30 +80,22 @@ func (r *Records) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 	if err != nil {
 		r.l.Printf("Error whilte getting records, %v \n", err)
 		result := errorResult(-2, err.Error())
-		jsonError(writer, result, 500)
+		returnJSONError(writer, result, 500)
 		return
 	}
 
-	result := &RecordResult{
+	result := &models.RecordResult{
 		Code:    0,
 		Message: "Success",
 		Records: records,
 	}
 
-	json.NewEncoder(writer).Encode(result)
-}
-
-// returns http error with givven http status code and object
-func jsonError(writer http.ResponseWriter, content *RecordResult, code int) {
-	writer.Header().Set("Content-Type", "application/json; charset=utf-8")
-	writer.Header().Set("X-Content-Type-Options", "nosniff")
-	writer.WriteHeader(code)
-	json.NewEncoder(writer).Encode(content)
+	returnJSON(writer, result)
 }
 
 // creates Record result for errors
-func errorResult(code int, msg string) *RecordResult {
-	return &RecordResult{
+func errorResult(code int, msg string) *models.RecordResult {
+	return &models.RecordResult{
 		Code:    code,
 		Message: msg,
 		Records: nil,

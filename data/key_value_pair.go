@@ -7,7 +7,7 @@ import (
 
 // Key value pair repository interface
 type KeyValueRepository interface {
-	GetAll() []models.KeyValuePair
+	GetAll() models.KeyValuePairs
 	Get(key string) (*models.KeyValuePair, error)
 	Add(item models.KeyValuePair) error
 }
@@ -29,7 +29,7 @@ func NewKeyValueInMemoryRepository() KeyValueRepository {
 
 // implements GetAll method from KeyValueRepository for in-memory database
 // returns all Key value pairs from in-memory database
-func (keyValue KeyValueInMemoryRepository) GetAll() []models.KeyValuePair {
+func (keyValue KeyValueInMemoryRepository) GetAll() models.KeyValuePairs {
 	return keyValue.KeyValues
 }
 

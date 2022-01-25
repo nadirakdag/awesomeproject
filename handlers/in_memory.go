@@ -48,7 +48,7 @@ func (inMemory *InMemory) ServeHTTP(writer http.ResponseWriter, request *http.Re
 func (inMemory *InMemory) getKeyValuePairs(writer http.ResponseWriter, request *http.Request) {
 
 	result := inMemory.keyValuePairRepository.GetAll()
-	models.KeyValuePairs(result).ToJSON(writer)
+	returnJSON(writer, result)
 }
 
 // @Summary Gets Key Value Pair by Key
@@ -72,9 +72,8 @@ func (inMemory *InMemory) getKeyValuePair(key string, writer http.ResponseWriter
 		}
 	}
 
-	if err := keyValuePairResult.ToJSON(writer); err != nil {
+	if err := returnJSON(writer, keyValuePairResult); err != nil {
 		inMemory.l.Printf("While converting to json someting went wrong, Key: %s, Err: %v", key, err)
-		http.Error(writer, err.Error(), http.StatusInternalServerError)
 		return
 	}
 }
@@ -100,9 +99,8 @@ func (inMemory *InMemory) addKeyValuePair(writer http.ResponseWriter, request *h
 		http.Error(writer, err.Error(), http.StatusBadRequest)
 	}
 
-	if err := newKeyValuePair.ToJSON(writer); err != nil {
+	if err := returnJSON(writer, newKeyValuePair); err != nil {
 		inMemory.l.Printf("While converting to json someting went wrong, Err: %v", err)
-		http.Error(writer, err.Error(), http.StatusInternalServerError)
 		return
 	}
 }

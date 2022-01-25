@@ -173,7 +173,7 @@ func TestRecordServeHTTP(t *testing.T) {
 }
 
 func checkResponseCode(rr *httptest.ResponseRecorder, t *testing.T, want int) {
-	result := &RecordResult{}
+	result := &models.RecordResult{}
 	_ = json.NewDecoder(rr.Body).Decode(result)
 
 	if result.Code != want {
